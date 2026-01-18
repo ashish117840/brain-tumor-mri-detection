@@ -1,0 +1,46 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# VS Code
+.vscode/
+
+# Conda / Virtual env
+env/
+venv/
+.conda/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local runtime folders
+uploads/
+
+# Local scratch/log files
+calibrate_log.txt
+env_smoke.txt
+hi.txt
+
+# Model files
+# This project stores models outside GitHub (e.g., Google Drive).
+*.keras
+*.h5
+*.pb
+*.tflite
+*.onnx
+*.zip
+
+# Do NOT commit model directories
+models/
+
+# Sample images can be huge; uncomment if you don't want to upload them:
+# sample MRI Images/
+
+# Logs
+*.log

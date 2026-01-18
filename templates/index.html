@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brain Tumor MRI Detection</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg0: #060914;
+        --bg1: #0b1020;
+        --card: rgba(255, 255, 255, 0.06);
+        --card2: rgba(255, 255, 255, 0.08);
+        --border: rgba(255, 255, 255, 0.12);
+        --text: #e8ecff;
+        --muted: rgba(232, 236, 255, 0.72);
+        --muted2: rgba(232, 236, 255, 0.58);
+        --accent: #6d5efc;
+        --accent2: #22d3ee;
+        --ok: #22c55e;
+        --err: #fb7185;
+        --shadow: 0 16px 40px rgba(0, 0, 0, 0.38);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto,
+          Arial, sans-serif;
+        margin: 0;
+        color: var(--text);
+        background: radial-gradient(1200px 520px at 10% -10%, rgba(109, 94, 252, 0.35), transparent 60%),
+          radial-gradient(900px 520px at 90% 10%, rgba(34, 211, 238, 0.20), transparent 55%),
+          linear-gradient(180deg, var(--bg0), var(--bg1));
+        min-height: 100vh;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .wrap {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 34px 18px 46px;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        margin-bottom: 18px;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo {
+        width: 38px;
+        height: 38px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, rgba(109, 94, 252, 0.95), rgba(34, 211, 238, 0.85));
+        box-shadow: 0 10px 26px rgba(109, 94, 252, 0.26);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: 0.2px;
+      }
+
+      .subtitle {
+        margin: 2px 0 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 16px;
+      }
+
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(8px);
+      }
+
+      .card h2 {
+        margin: 0;
+        font-size: 16px;
+      }
+
+      .card p {
+        margin: 8px 0 0;
+        color: var(--muted);
+        line-height: 1.4;
+      }
+
+      .drop {
+        margin-top: 14px;
+        border: 1px dashed rgba(255, 255, 255, 0.22);
+        background: rgba(0, 0, 0, 0.18);
+        border-radius: 16px;
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+        transition: border-color 120ms ease, transform 120ms ease, background 120ms ease;
+      }
+
+      .drop.dragover {
+        border-color: rgba(34, 211, 238, 0.75);
+        background: rgba(34, 211, 238, 0.08);
+        transform: translateY(-1px);
+      }
+
+      .fileRow {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .fileHint {
+        font-size: 13px;
+        color: var(--muted2);
+      }
+
+      input[type="file"] {
+        width: 100%;
+        padding: 10px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(232, 236, 255, 0.92);
+        outline: none;
+      }
+
+      .actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, rgba(109, 94, 252, 1), rgba(34, 211, 238, 0.85));
+        color: white;
+        border: 0;
+        padding: 10px 14px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        box-shadow: 0 14px 26px rgba(109, 94, 252, 0.18);
+      }
+
+      .btn:disabled {
+        opacity: 0.65;
+        cursor: not-allowed;
+      }
+
+      .btn.secondary {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: none;
+        font-weight: 600;
+      }
+
+      .preview {
+        display: grid;
+        grid-template-columns: 96px 1fr;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .thumb {
+        width: 96px;
+        height: 96px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(0, 0, 0, 0.22);
+        overflow: hidden;
+      }
+
+      .thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: none;
+      }
+
+      .meta {
+        display: grid;
+        gap: 6px;
+      }
+
+      .meta strong {
+        font-size: 14px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        width: fit-content;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .alert {
+        margin-top: 14px;
+        padding: 12px 12px;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .alert.error {
+        background: rgba(251, 113, 133, 0.12);
+        border-color: rgba(251, 113, 133, 0.22);
+      }
+
+      .alert.ok {
+        background: rgba(34, 197, 94, 0.10);
+        border-color: rgba(34, 197, 94, 0.20);
+      }
+
+      .resultHead {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .resultTitle {
+        font-size: 18px;
+        font-weight: 800;
+      }
+
+      .confidence {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .bars {
+        display: grid;
+        gap: 10px;
+        margin-top: 12px;
+      }
+
+      .barRow {
+        display: grid;
+        grid-template-columns: 120px 1fr 70px;
+        gap: 10px;
+        align-items: center;
+      }
+
+      @media (max-width: 520px) {
+        .barRow {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .barLabel {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .barTrack {
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        overflow: hidden;
+      }
+
+      .barFill {
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, rgba(109, 94, 252, 0.95), rgba(34, 211, 238, 0.9));
+      }
+
+      .barVal {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .footer {
+        margin-top: 16px;
+        color: rgba(232, 236, 255, 0.52);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="topbar">
+        <div class="brand">
+          <div class="logo" aria-hidden="true"></div>
+          <div>
+            <h1>Brain Tumor MRI Detection</h1>
+            <div class="subtitle">Upload an MRI and get a 4-class prediction.</div>
+          </div>
+        </div>
+        <div class="pill" title="Tip">Tip: use a clear axial MRI slice</div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>Upload MRI</h2>
+          <p>
+            Supported: JPG/PNG/WebP. The model predicts Glioma, Meningioma,
+            Pituitary, or No Tumor.
+          </p>
+
+          <form id="uploadForm" action="/predict" method="POST" enctype="multipart/form-data">
+            <div id="drop" class="drop">
+              <div class="fileRow">
+                <div>
+                  <strong>Choose file</strong>
+                  <div class="fileHint">Drag & drop here, or click to browse</div>
+                </div>
+                <div class="actions">
+                  <button type="button" id="clearBtn" class="btn secondary">Clear</button>
+                  <button type="submit" id="predictBtn" class="btn">Predict</button>
+                </div>
+              </div>
+
+              <input id="fileInput" type="file" name="file" accept="image/*" required />
+
+              <div class="preview">
+                <div class="thumb">
+                  <img id="previewImg" alt="Preview" />
+                </div>
+                <div class="meta">
+                  <div class="pill" id="fileMeta">No file selected</div>
+                  <div class="fileHint">Your image stays on your machine until you press Predict.</div>
+                </div>
+              </div>
+            </div>
+          </form>
+
+          {% if error %}
+          <div class="alert error" role="alert">{{ error }}</div>
+          {% endif %}
+        </div>
+
+        <div class="card">
+          <h2>Result</h2>
+          <p>Prediction and class probabilities.</p>
+
+          {% if predicted_label %}
+          <div class="alert ok" style="margin-top: 14px">
+            <div class="resultHead">
+              <div class="resultTitle">{{ predicted_label }}</div>
+              {% if confidence is not none %}
+              <div class="confidence">Confidence: {{ "%.2f"|format(confidence) }}%</div>
+              {% endif %}
+            </div>
+          </div>
+
+          {% if probabilities %}
+          <div class="bars" aria-label="Class probabilities">
+            {% for row in probabilities %}
+            <div class="barRow">
+              <div class="barLabel">{{ row.label }}</div>
+              <div class="barTrack" aria-hidden="true">
+                <div class="barFill" style="width: {{ "%.2f"|format(row.prob) }}%"></div>
+              </div>
+              <div class="barVal">{{ "%.2f"|format(row.prob) }}%</div>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% else %}
+          <div class="pill" style="margin-top: 14px">No prediction yet</div>
+          {% endif %}
+
+          <div class="footer">
+            This UI shows the model’s output probabilities. If you trained with a
+            different class order, update the mapping in <strong>model_loader.py</strong>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      (function () {
+        const drop = document.getElementById("drop");
+        const input = document.getElementById("fileInput");
+        const img = document.getElementById("previewImg");
+        const meta = document.getElementById("fileMeta");
+        const clearBtn = document.getElementById("clearBtn");
+        const form = document.getElementById("uploadForm");
+        const predictBtn = document.getElementById("predictBtn");
+
+        function setMeta(file) {
+          if (!file) {
+            meta.textContent = "No file selected";
+            img.style.display = "none";
+            img.removeAttribute("src");
+            return;
+          }
+          const mb = (file.size / (1024 * 1024)).toFixed(2);
+          meta.textContent = `${file.name} • ${mb} MB`;
+        }
+
+        function setPreview(file) {
+          if (!file) return;
+          const url = URL.createObjectURL(file);
+          img.src = url;
+          img.style.display = "block";
+          img.onload = () => URL.revokeObjectURL(url);
+        }
+
+        function handleFile(file) {
+          if (!file) return;
+          if (!file.type || !file.type.startsWith("image/")) {
+            setMeta(null);
+            alert("Please choose an image file.");
+            input.value = "";
+            return;
+          }
+          setMeta(file);
+          setPreview(file);
+        }
+
+        input.addEventListener("change", () => {
+          handleFile(input.files && input.files[0]);
+        });
+
+        clearBtn.addEventListener("click", () => {
+          input.value = "";
+          setMeta(null);
+        });
+
+        ["dragenter", "dragover"].forEach((evt) => {
+          drop.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            drop.classList.add("dragover");
+          });
+        });
+
+        ["dragleave", "drop"].forEach((evt) => {
+          drop.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            drop.classList.remove("dragover");
+          });
+        });
+
+        drop.addEventListener("drop", (e) => {
+          const dt = e.dataTransfer;
+          if (!dt || !dt.files || !dt.files.length) return;
+          input.files = dt.files;
+          handleFile(dt.files[0]);
+        });
+
+        form.addEventListener("submit", () => {
+          predictBtn.disabled = true;
+          predictBtn.textContent = "Predicting…";
+        });
+
+        // Initialize
+        setMeta(null);
+      })();
+    </script>
+  </body>
+</html>
